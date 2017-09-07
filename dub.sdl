@@ -1,0 +1,7 @@
+name "appStatusMonitor"
+description "appStatusMonitor application"
+authors "Dmitry Bubnenkov"
+copyright "Copyright © 2017, Dmitry Bubnenkov"
+license "proprietary"
+dependency "vibe-d" version="~>0.8.1"
+dependency "sdlang-d" version="~>0.10.1"
