@@ -10,6 +10,7 @@
 		"libinputvisitor": "1.2.2",
 		"memutils": "0.4.9",
 		"openssl": "1.1.5+1.0.1g",
+		"resusage": "0.2.7",
 		"sdlang-d": "0.10.1",
 		"taggedalgebraic": "0.10.7",
 		"unit-threaded": "0.6.36",

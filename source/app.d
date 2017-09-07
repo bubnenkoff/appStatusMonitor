@@ -2,9 +2,10 @@ import std.stdio;
 import std.file;
 import std.array;
 import std.algorithm;
+import std.process;
 
+import resusage;
 import sdlang;
-
 import vibe.vibe;
 
 string baseDir = `D:\code`;
@@ -19,6 +20,7 @@ void main()
 	logInfo("Please open http://127.0.0.1:8081/ in your browser.");
 
 	extractAppsNames(getSDLFilesList(baseDir));
+	getProcessPID();
 
 	runApplication();
 
@@ -37,6 +39,7 @@ string [] getSDLFilesList(string dir)
 
 void extractAppsNames(string [] getSDLFilesList)
 {
+
 	string [] appsNames;
 
 	Tag root;
@@ -48,5 +51,30 @@ void extractAppsNames(string [] getSDLFilesList)
 		auto name = root.getTagValue!string("name");
 		appsNames ~= name;
 	}
+
 }
 
+void getProcessPID()
+{
+	auto process = execute(["tasklist", "/v", "/fo", "csv"]);
+	string result; 
+	if (process.status != 0) 
+		writeln("Compilation failed:\n", process.output);
+	else
+	{
+		//writeln("Done:\n", process.output);
+		result = process.output;
+	}
+
+	foreach(line; result.splitLines())
+	{
+		if((line.split(",")[0]).canFind("firefox"))
+			//writeln(line.split(",")[1]);
+		{
+			int appPid = to!int(line.split(",")[1].replace(`"`,``));
+			writeln(appPid);
+		}
+	}
+
+
+}
