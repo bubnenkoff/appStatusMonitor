@@ -13,6 +13,7 @@ import vibe.vibe;
 import globals;
 
 string baseDir = `D:\code`;
+string appName = "firefox";
 
 void main()
 {
@@ -23,11 +24,17 @@ void main()
 
 	logInfo("Please open http://127.0.0.1:8083/ in your browser.");
 
-	extractAppsNames(getSDLFilesList(baseDir));
-	checkIfPidisAlive(getProcessPID("firefox"));
+	checkIfSDLAppsIsAlreadyRun(extractAppsFullNamesWithPath(getSDLFilesList(baseDir)));
+	int appPid = getProcessPIDByAppName(appName);
+	if(appPid == 0)
+	{
+		writefln("Process: %s do not exists in memory", appName);
+		return;
+	}
+	//checkIfPidisAlive(appPid);
+	getProcessInfo(appPid);
 
 	runApplication();
-
 
 }
 
@@ -41,9 +48,9 @@ string [] getSDLFilesList(string dir)
 	return dirEntries(dir, "*.{sdl}",SpanMode.depth).map!(a=>a.name).array;
 }
 
-void extractAppsNames(string [] getSDLFilesList)
+string [] extractAppsFullNamesWithPath(string [] getSDLFilesList) // should return FullNames with path
 {
-	string [] appsNames;
+	string [] appsFullPathBaseOnSDL;
 
 	Tag root;
 	foreach(f; getSDLFilesList)
@@ -51,13 +58,14 @@ void extractAppsNames(string [] getSDLFilesList)
 		auto text = readText(f);
 		root = parseSource(text);
 		//Tag akiko = root.tag["name"];
-		string name = root.getTagValue!string("name").toLower;
-		appsNames ~= name;
+		string appName = root.getTagValue!string("name").toLower;
+		appsFullPathBaseOnSDL ~= buildPath(f.dirName, appName); // return ready to run path: D:\code\dlang.ru\dcms
 	}
+	return appsFullPathBaseOnSDL;
 }
 
 // extracting process ID by name
-int getProcessPID(string appName)
+int getProcessPIDByAppName(string appName) // if >0 than process alive
 {
 	auto process = execute(["tasklist", "/v", "/fo", "csv"]);
 	int appPid;
@@ -84,10 +92,9 @@ int getProcessPID(string appName)
 
 	if(appPid == 0)
 	{
-		writeln("Can't find PID ", appPid);
+		//writeln("Can't find PID. Pid is: ", appPid);
 	}
 
-	getProcessInfo(appPid);
 	return appPid;
 }
 
@@ -131,6 +138,22 @@ bool checkIfPidisAlive(int appPid)
 		}
 	}
 
-	writefln("Process with PID: %s alive", appPid);
+	//writefln("Process with PID: %s alive", appPid);
 	return isAppAlive;
+}
+
+void checkIfSDLAppsIsAlreadyRun(string [] appsFullPathBaseOnSDL) // if already some process run
+{
+	foreach(app; appsFullPathBaseOnSDL)
+	{
+		int appPid = getProcessPIDByAppName(app.baseName);
+		if(appPid>0) // without baseName contains fullPath
+		{
+			writefln(`Process "%s" is alread running. PID: %s`, app.baseName, appPid);
+		}
+		else
+		{
+			writefln(`Process "%s" DO NOT run. PID: %s`, app.baseName, appPid);	
+		}
+	}
 }
