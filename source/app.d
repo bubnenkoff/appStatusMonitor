@@ -144,6 +144,10 @@ bool checkIfPidisAlive(int appPid)
 
 void checkIfSDLAppsIsAlreadyRun(string [] appsFullPathBaseOnSDL) // if already some process run
 {
+	int [string] pidAndAppName;
+	//pidAndAppName["dcms"] = 1;
+	auto logFile = File("myapp_error.log", "w");
+
 	foreach(app; appsFullPathBaseOnSDL)
 	{
 		int appPid = getProcessPIDByAppName(app.baseName);
@@ -153,7 +157,14 @@ void checkIfSDLAppsIsAlreadyRun(string [] appsFullPathBaseOnSDL) // if already s
 		}
 		else
 		{
-			writefln(`Process "%s" DO NOT run. PID: %s`, app.baseName, appPid);	
+			writefln(`Process "%s" DO NOT run. PID: %s`, app.baseName, appPid);
+
+			// check on dcms
+			if(app.baseName == "dcms")
+			{
+				auto pid = spawnProcess(app);
+			}
+
 		}
 	}
 }
