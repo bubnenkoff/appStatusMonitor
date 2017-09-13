@@ -67,8 +67,17 @@ string [] extractAppsFullNamesWithPath(string [] getSDLFilesList) // should retu
 // extracting process ID by name
 int getProcessPIDByAppName(string appName) // if >0 than process alive
 {
-	auto process = execute(["tasklist", "/v", "/fo", "csv"]);
 	int appPid;
+	std.typecons.Tuple!(int, "status", string, "output") process;
+	version(windows)
+	{
+		process = execute(["tasklist", "/v", "/fo", "csv"]);
+	}
+
+	version(linux)
+	{
+		process = execute(["ps", "cax"]);	
+	}
 
 	string result; 
 	if (process.status != 0) 
@@ -81,11 +90,19 @@ int getProcessPIDByAppName(string appName) // if >0 than process alive
 
 	foreach(line; result.splitLines().dropOne) // first line in cyrillic
 	{
-		if((line.split(",")[0].replace(`"`,``).stripExtension.toLower) == appName) // [0] - name, [1] - ID
-			//writeln(line.split(",")[1]);
+		version(windows)
 		{
-			appPid = to!int(line.split(",")[1].replace(`"`,``));
-			writeln("Founded PID: ", appPid);
+			if((line.split(",")[0].replace(`"`,``).stripExtension.toLower) == appName) // [0] - name, [1] - ID
+				//writeln(line.split(",")[1]);
+			{
+				appPid = to!int(line.split(",")[1].replace(`"`,``));
+				writeln("Founded PID: ", appPid);
+			}
+		}
+		version(linux)
+		{
+			if(line.canFind(appName)) //improveme not canFind but == should be used. Also need to check dublicates
+			appPid = to!int(line.split(" ")[2]);
 		}
 
 	}
